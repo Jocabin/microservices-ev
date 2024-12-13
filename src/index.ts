@@ -1,4 +1,4 @@
-import { Elysia, Error } from "elysia";
+import { Elysia } from "elysia";
 
 const CATALOGUE_URL = 'http://microservices.tp.rjqu8633.odns.fr/api'
 const STOCK_URL = 'https://microservice-stock-nine.vercel.app/api'
@@ -37,7 +37,11 @@ const app = new Elysia()
 
                 const product_info = await product_info_res.json()
 
-                basket.push(product_info._id)
+                basket.push({
+                        id: product_info._id,
+                        quantity: body.quantity
+                })
+
                 set.status = 204
                 return
 
