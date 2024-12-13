@@ -1,7 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, Error } from "elysia";
 
 const CATALOGUE_URL = 'http://microservices.tp.rjqu8633.odns.fr/api'
 const STOCK_URL = 'https://microservice-stock-nine.vercel.app/api'
+
+const basket = []
 
 const app = new Elysia()
         .get("/api/products", async () => {
@@ -25,6 +27,20 @@ const app = new Elysia()
                 }
 
                 return res_result
+        })
+        .put("/api/basket", async ({ set, body, error }) => {
+                const product_info_res = await fetch(CATALOGUE_URL + '/products/' + body.id)
+
+                if (!product_info_res.ok) {
+                        return error(400)
+                }
+
+                const product_info = await product_info_res.json()
+
+                basket.push(product_info._id)
+                set.status = 204
+                return
+
         })
         .listen(4457);
 
