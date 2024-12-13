@@ -1,9 +1,10 @@
 import { Elysia } from "elysia";
+import type { ProductDto, AddToBasketDto, BasketDto } from "./shopping_types";
 
 const CATALOGUE_URL = 'http://microservices.tp.rjqu8633.odns.fr/api'
 const STOCK_URL = 'https://microservice-stock-nine.vercel.app/api'
 
-const basket = []
+const basket: AddToBasketDto[] = []
 
 const app = new Elysia()
         .get("/api/products", async () => {
@@ -13,7 +14,7 @@ const app = new Elysia()
                 const stock = await stock_res.json()
 
                 const products_res = await fetch(CATALOGUE_URL + '/products')
-                const products = await products_res.json()
+                const products: ProductDto[] = await products_res.json()
 
                 for (const product of stock) {
                         const infos = products.filter(el => product.productId === el._id)[0]
@@ -29,7 +30,8 @@ const app = new Elysia()
                 return res_result
         })
         .put("/api/basket", async ({ set, body, error }) => {
-                const product_info_res = await fetch(CATALOGUE_URL + '/products/' + body.id)
+                const data: AddToBasketDto = body as AddToBasketDto
+                const product_info_res = await fetch(CATALOGUE_URL + '/products/' + data.id)
 
                 if (!product_info_res.ok) {
                         return error(400)
@@ -39,12 +41,31 @@ const app = new Elysia()
 
                 basket.push({
                         id: product_info._id,
-                        quantity: body.quantity
+                        quantity: data.quantity
                 })
 
                 set.status = 204
                 return
 
+        })
+        .get("/api/basket", async () => {
+                const result_res: BasketDto = { totalPrice: 0, products: [] }
+
+                for (const item of basket) {
+                        const infos_res = await fetch(CATALOGUE_URL + '/products/' + item.id)
+                        const infos = await infos_res.json()
+
+                        result_res.products.push({
+                                id: infos._id,
+                                name: infos.name,
+                                description: infos.description,
+                                unitPrice: infos.price,
+                                quantity: 1
+                        })
+                        result_res.totalPrice += infos.price
+                }
+
+                return result_res
         })
         .listen(4457);
 
