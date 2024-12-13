@@ -31,3 +31,8 @@ export interface ProductDto {
         categories: string[];
         price: number;
 }
+
+export interface PurchasedProductDto {
+        productId: string;
+        quantity: number;
+}
